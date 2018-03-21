@@ -1,0 +1,9 @@
+name: niffler
+version: 0.1.0
+
+authors:
+  - Meyer Lobl <meyer@kinnek.com>
+
+crystal: 0.24.2
+
+license: MIT
