@@ -1,4 +1,4 @@
-# niffler
+# finder
 
 Shard to help you find those files of value easier
 
@@ -8,14 +8,14 @@ Add this to your application's `shard.yml`:
 
 ```yaml
 dependencies:
-  niffler:
-    github: mlobl/niffler
+  finder:
+    github: mlobl/finder
 ```
 
 ## Usage
 
 ```crystal
-require "niffler"
+require "finder"
 ```
 
 TODO: Write usage instructions here
@@ -26,7 +26,7 @@ TODO: Write development instructions here
 
 ## Contributing
 
-1. Fork it ( https://github.com/mlobl/niffler/fork )
+1. Fork it ( https://github.com/mlobl/finder/fork )
 2. Create your feature branch (git checkout -b my-new-feature)
 3. Commit your changes (git commit -am 'Add some feature')
 4. Push to the branch (git push origin my-new-feature)
