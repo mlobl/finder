@@ -3,6 +3,7 @@
 Helps you find files and folders recursively from a root directory
 
 [![Build Status](https://travis-ci.org/mlobl/finder.svg?branch=master)](https://travis-ci.org/mlobl/finder)
+[![GitHub release](https://img.shields.io/github/release/mlobl/finder.svg)](https://github.com/mlobl/finder/releases)
 
 ## Installation
 
@@ -15,7 +16,7 @@ dependencies:
 ```
 
 ## Usage
-You can look at spec and docs for a few examples, but here are some quickies
+You can look at spec and [docs](https://mlobl.github.io/finder/Finder.html) for a few examples, but here are some quickies
 ```crystal
 require "finder"
 
