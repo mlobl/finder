@@ -1,6 +1,8 @@
 # finder
 
-Shard to help you find those files of value easier
+Helps you find files and folders recursively from a root directory
+
+[![Build Status](https://travis-ci.org/mlobl/finder.svg?branch=master)](https://travis-ci.org/mlobl/finder)
 
 ## Installation
 
@@ -13,16 +15,34 @@ dependencies:
 ```
 
 ## Usage
-
+You can look at spec and docs for a few examples, but here are some quickies
 ```crystal
 require "finder"
+
+# Uses CWD as the root dir by default
+finder = Finder.new
+# or set it like this
+Finder.new "/tmp"
+
+# substring match
+finder.find(".txt")  # ==> ["a.txt", "dir/path/b.txt", ..]
+# or regex
+Finder.new.find(/\.txt/)  # ==> ["a.txt", "dir/path/b.txt", ..]
+# filter with a select method
+finder.select &.includes? "substring"
+# array of all files (can pass in block as well)
+Finder.new.files # ==> ["dir_a/x.txt", "dir_b/y.txt", ..]
+# same for dirs
+Finder.new.dirs # ==> ["dir_a", "dir_b", ..]
+# iterate across both dirs and files with each
+Finder.new.each do |path|
+    puts path
+end
+# walk the directory (port of Python's os.walk)
+Finder.new.walk do |current_dir, folder, files|
+    ....
+end
 ```
-
-TODO: Write usage instructions here
-
-## Development
-
-TODO: Write development instructions here
 
 ## Contributing
 

@@ -1,23 +1,22 @@
 # Inspired by the find command, this helps you find files and folders
 # recursively in Crystal
 class Finder
-
   getter root : String
 
   def initialize(@root = Dir.current)
   end
 
   # Returns an array of paths recursively under root that include *fragment* in the path
-  def find(fragment : String)
+  def find(fragment : String) : Array(String)
     self.select &.includes? fragment
   end
 
   # Returns an array of paths recursively under root that match your regex *fragment*
-  def find(fragment : Regex)
+  def find(fragment : Regex) : Array(String)
     self.select { |s| !fragment.match(s).nil? }
   end
 
-   # gives you all the directories that exist recursively as Array(String)
+  # gives you all the directories that exist recursively as Array(String)
   def dirs : Array(String)
     ary = [] of String
     walk do |root, dirs, files|
@@ -26,7 +25,7 @@ class Finder
     ary
   end
 
-  def dirs(&block : String -> )
+  def dirs(&block : String ->)
     walk do |root, dirs, files|
       dirs.each do |e|
         block.call(File.join(@root, e))
@@ -44,7 +43,7 @@ class Finder
   end
 
   # allows you to iterate over the files with a block
-  def files(&block : String -> )
+  def files(&block : String ->)
     walk do |root, dirs, files|
       files.each do |e|
         block.call(File.join(@root, e))
@@ -60,7 +59,7 @@ class Finder
   end
 
   # Iterates over each directory and file underneath the root
-  def each(&block : String -> )
+  def each(&block : String ->)
     walk do |root, dirs, files|
       {dirs, files}.each do |col|
         (col.map { |bname| File.join(root, bname) }).each do |hit|
@@ -74,7 +73,7 @@ class Finder
   # the root directory and at each level will give yield you the
   # current directory, array of directories in the current directory,
   # and the same thing for files.
-  def walk(d = @root, &block : String, Array(String), Array(String) -> )
+  def walk(d = @root, &block : String, Array(String), Array(String) ->)
     d = Dir.new(d) if d.is_a?(String)
     dirs, files = d.entries.partition { |s| Dir.exists?(File.join(d.path, s)) }
     dirs = dirs.select { |x| !{".", ".."}.includes? x }
@@ -85,6 +84,4 @@ class Finder
       end
     end
   end
-
 end
-
