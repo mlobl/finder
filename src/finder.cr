@@ -1,9 +1,51 @@
+class FinderRule
+  @expression : Tuple(Char, FinderRule, FinderRule)
+  BLANK = {'_', FinderRule.new, FinderRule.new}
+
+  def initialize(@name = "*", @path = "**", @max_depth = 100000, @min_depth = -1,
+                 @expression = BLANK, root = Dir.current)
+    @root = File.expand_path(root)
+  end
+
+  def get_depth(fpath : String)
+    path = fpath.sub(@root, "").strip(File::SEPARATOR)
+    path.count(File::SEPARATOR)
+  end
+
+  def match?(fpath : String) : Bool
+    results = [] of Bool
+    operator, a, b = @expression
+    case operator
+    when '&'
+      a.match?(fpath) && b.match?(fpath)
+    when '|'
+      a.match?(fpath) || b.match?(fpath)
+    else
+      fpath_exp = File.expand_path(fpath)
+      results << File.match?(@name, File.basename(fpath_exp))
+      results << File.match?(@path, fpath_exp)
+      results << (@min_depth <= get_depth(fpath_exp) <= @max_depth)
+      results.all?
+    end
+  end
+
+  def &(other : FinderRule)
+    FinderRule.new(expression: {'&', self, other})
+  end
+
+  def |(other : FinderRule)
+    FinderRule.new(expression: {'|', self, other})
+  end
+end
+
 # Inspired by the find command, this helps you find files and folders
 # recursively in Crystal
 class Finder
   getter root : String
+  @rules : Array(FinderRule)
 
-  def initialize(@root = Dir.current)
+  def initialize(@root = Dir.current, rules = [] of FinderRule)
+    @rules = rules
   end
 
   # Returns an array of paths recursively under root that include *fragment* in the path
@@ -58,12 +100,14 @@ class Finder
     arr
   end
 
-  # Iterates over each directory and file underneath the root
+  # Iterates over each directory and file underneath the root that matches the
+  # FinderRules passed in or all of them if nothing was passed in.
   def each(&block : String ->)
     walk do |root, dirs, files|
       {dirs, files}.each do |col|
-        (col.map { |bname| File.join(root, bname) }).each do |hit|
-          block.call(hit)
+        (col.map { |bname| File.join(root, bname) }).each do |f|
+          passed = (@rules.map { |rule| rule.match? File.join(root, f) }).all?
+          block.call(f) if passed
         end
       end
     end
