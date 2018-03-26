@@ -1,5 +1,5 @@
 name: finder
-version: 0.1.0
+version: 0.1.1
 description: "Helps you find files and folders recursively from a root directory and crawl your filesystem"
 
 authors:

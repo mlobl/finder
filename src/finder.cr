@@ -75,13 +75,10 @@ class Finder
   # and the same thing for files.
   def walk(d = @root, &block : String, Array(String), Array(String) ->)
     d = Dir.new(d) if d.is_a?(String)
-    dirs, files = d.entries.partition { |s| Dir.exists?(File.join(d.path, s)) }
-    dirs = dirs.select { |x| !{".", ".."}.includes? x }
-    if Dir.exists?(d.path)
-      block.call(d.path, dirs, files)
-      dirs.each do |dir_name|
-        walk File.join(d.path, dir_name), &block
-      end
+    dirs, files = d.children.partition { |s| Dir.exists?(File.join(d.path, s)) }
+    block.call(d.path, dirs, files)
+    dirs.each do |dir_name|
+      walk File.join(d.path, dir_name), &block
     end
   end
 end
