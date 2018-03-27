@@ -1,30 +1,45 @@
 class FinderRule
-  @expression : Tuple(Char, FinderRule, FinderRule)
   BLANK = {'_', FinderRule.new, FinderRule.new}
+  DEFAULTS = {
+    name: "*",
+    path: "**",
+    max_depth: 100000,
+    min_depth: -1,
+    expression: BLANK,
+    root: Dir.current
+  }
+  @conf : NamedTuple(
+    name: String,
+    path: String,
+    max_depth: Int32,
+    min_depth: Int32,
+    expression: Tuple(Char, FinderRule, FinderRule)
+    root: String
+  )
 
-  def initialize(@name = "*", @path = "**", @max_depth = 100000, @min_depth = -1,
-                 @expression = BLANK, root = Dir.current)
-    @root = File.expand_path(root)
+  def initialize(**kwargs)
+    @conf = DEFAULTS.merge kwargs
+    t = { root: File.expand_path(@conf[:root]) }
+    @conf = @conf.merge t
   end
 
   def get_depth(fpath : String)
-    path = fpath.sub(@root, "").strip(File::SEPARATOR)
+    path = fpath.strip(File::SEPARATOR)
     path.count(File::SEPARATOR)
   end
 
   def match?(fpath : String) : Bool
     results = [] of Bool
-    operator, a, b = @expression
+    operator, a, b = @conf[:expression]
     case operator
     when '&'
       a.match?(fpath) && b.match?(fpath)
     when '|'
       a.match?(fpath) || b.match?(fpath)
     else
-      fpath_exp = File.expand_path(fpath)
-      results << File.match?(@name, File.basename(fpath_exp))
-      results << File.match?(@path, fpath_exp)
-      results << (@min_depth <= get_depth(fpath_exp) <= @max_depth)
+      results << File.match?(@conf[:name], File.basename(fpath))
+      results << File.match?(@conf[:path], fpath)
+      results << (@conf[:min_depth] <= get_depth(fpath) <= @conf[:max_depth])
       results.all?
     end
   end
@@ -44,8 +59,18 @@ class Finder
   getter root : String
   @rules : Array(FinderRule)
 
-  def initialize(@root = Dir.current, rules = [] of FinderRule)
+  def initialize(root : String, rules : Array(FinderRule))
+    @root = root
     @rules = rules
+  end
+
+  def initialize(root : String, rule : FinderRule)
+    @root = root
+    @rules = [rule]
+  end
+
+  def initialize(@root = Dir.current)
+    @rules = [] of FinderRule
   end
 
   # Returns an array of paths recursively under root that include *fragment* in the path
@@ -62,7 +87,7 @@ class Finder
   def dirs : Array(String)
     ary = [] of String
     walk do |root, dirs, files|
-      ary += dirs.map { |x| File.join(@root, x) }
+      ary += (dirs.select {|e| passes_rules(File.join(root, e))}).map { |x| File.join(root, x) }
     end
     ary
   end
@@ -70,7 +95,8 @@ class Finder
   def dirs(&block : String ->)
     walk do |root, dirs, files|
       dirs.each do |e|
-        block.call(File.join(@root, e))
+        path = File.join(root, e)
+        block.call(path) if passes_rules(path)
       end
     end
   end
@@ -79,7 +105,7 @@ class Finder
   def files : Array(String)
     ary = [] of String
     walk do |root, dirs, files|
-      ary += files.map { |x| File.join(@root, x) }
+      ary += (files.select { |x| passes_rules(File.join(root, x)) }).map { |x| File.join(root, x) }
     end
     ary
   end
@@ -88,7 +114,8 @@ class Finder
   def files(&block : String ->)
     walk do |root, dirs, files|
       files.each do |e|
-        block.call(File.join(@root, e))
+        path = File.join(root, e)
+        block.call(path) if passes_rules(path)
       end
     end
   end
@@ -100,14 +127,18 @@ class Finder
     arr
   end
 
+  def passes_rules(f)
+    normalized = f.lchop(@root).lstrip(File::SEPARATOR)
+    (@rules.map { |rule| rule.match? normalized }).all?
+  end
+
   # Iterates over each directory and file underneath the root that matches the
   # FinderRules passed in or all of them if nothing was passed in.
   def each(&block : String ->)
     walk do |root, dirs, files|
       {dirs, files}.each do |col|
         (col.map { |bname| File.join(root, bname) }).each do |f|
-          passed = (@rules.map { |rule| rule.match? File.join(root, f) }).all?
-          block.call(f) if passed
+          block.call(f) if passes_rules(f)
         end
       end
     end

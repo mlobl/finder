@@ -47,4 +47,12 @@ describe "FinderRule" do
     (a | b).match?("hello.cr").should be_true
     (b | c).match?("hello.cr").should be_false
   end
+
+  it "nested expressions" do
+    a = FinderRule.new(min_depth: 0)
+    b = FinderRule.new(min_depth: 1)
+    c = FinderRule.new(min_depth: 2)
+    (b & (a | c)).match?("a/hello.cr").should be_true
+    (c & (a | b)).match?("a/hello.cr").should be_false
+  end
 end

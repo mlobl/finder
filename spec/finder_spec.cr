@@ -34,13 +34,13 @@ describe "Finder" do
 
   it "dirs array test" do
     actual = Finder.new("spec/test_directory").dirs
-    expected = ["spec/test_directory/b", "spec/test_directory/c"]
+    expected = ["spec/test_directory/b", "spec/test_directory/b/c"]
     actual.should eq(expected)
   end
 
   it "files array test" do
     actual = Finder.new("spec/test_directory").files
-    expected = ["spec/test_directory/a.txt", "spec/test_directory/b.txt", "spec/test_directory/c.json"]
+    expected = ["spec/test_directory/a.txt", "spec/test_directory/b/b.txt", "spec/test_directory/b/c/c.json"]
     actual.should eq(expected)
   end
 
@@ -49,7 +49,7 @@ describe "Finder" do
     Finder.new("spec/test_directory").dirs do |e|
       actual << e
     end
-    expected = ["spec/test_directory/b", "spec/test_directory/c"]
+    expected = ["spec/test_directory/b", "spec/test_directory/b/c"]
     actual.should eq(expected)
   end
 
@@ -58,7 +58,28 @@ describe "Finder" do
     Finder.new("spec/test_directory").files do |e|
       actual << e
     end
-    expected = ["spec/test_directory/a.txt", "spec/test_directory/b.txt", "spec/test_directory/c.json"]
+    expected = ["spec/test_directory/a.txt", "spec/test_directory/b/b.txt", "spec/test_directory/b/c/c.json"]
+    actual.should eq(expected)
+  end
+
+  it "using rules" do
+    r = FinderRule.new(name: "a*")
+    actual = Finder.new("spec/test_directory", r).files
+    expected = ["spec/test_directory/a.txt"]
+    actual.should eq(expected)
+  end
+
+  it "full path using rules" do
+    r = FinderRule.new(name: "a*")
+    actual = Finder.new(File.join(Dir.current, "spec/test_directory"), [r]).files
+    expected = [File.join(Dir.current, "spec/test_directory/a.txt")]
+    actual.should eq(expected)
+  end
+
+  it "files array test full paths with rules" do
+    r = FinderRule.new(name: "a*")
+    actual = Finder.new(File.join(Dir.current, "spec/test_directory"), r).files
+    expected = ["spec/test_directory/a.txt"].map { |p| File.expand_path(p) }
     actual.should eq(expected)
   end
 end
