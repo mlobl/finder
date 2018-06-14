@@ -1,4 +1,4 @@
-# finder
+# finder (Do not use)
 
 Helps you find files and folders recursively from a root directory
 
