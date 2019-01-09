@@ -1,25 +1,24 @@
 class FinderRule
-  BLANK = {'_', FinderRule.new, FinderRule.new}
+  BLANK    = {'_', FinderRule.new, FinderRule.new}
   DEFAULTS = {
-    name: "*",
-    path: "**",
-    max_depth: 100000,
-    min_depth: -1,
+    name:       "*",
+    path:       "**",
+    max_depth:  100000,
+    min_depth:  -1,
     expression: BLANK,
-    root: Dir.current
+    root:       Dir.current,
   }
   @conf : NamedTuple(
     name: String,
     path: String,
     max_depth: Int32,
     min_depth: Int32,
-    expression: Tuple(Char, FinderRule, FinderRule)
-    root: String
-  )
+    expression: Tuple(Char, FinderRule, FinderRule),
+    root: String)
 
   def initialize(**kwargs)
     @conf = DEFAULTS.merge kwargs
-    t = { root: File.expand_path(@conf[:root]) }
+    t = {root: File.expand_path(@conf[:root])}
     @conf = @conf.merge t
   end
 
@@ -73,6 +72,16 @@ class Finder
     @rules = [] of FinderRule
   end
 
+  def initialize(rules : Array(FinderRule))
+    @root = Dir.current
+    @rules = rules
+  end
+
+  def initialize(rule : FinderRule)
+    @root = Dir.current
+    @rules = [rule]
+  end
+
   # Returns an array of paths recursively under root that include *fragment* in the path
   def find(fragment : String) : Array(String)
     self.select &.includes? fragment
@@ -87,7 +96,7 @@ class Finder
   def dirs : Array(String)
     ary = [] of String
     walk do |root, dirs, files|
-      ary += (dirs.select {|e| passes_rules(File.join(root, e))}).map { |x| File.join(root, x) }
+      ary += (dirs.select { |e| passes_rules(File.join(root, e)) }).map { |x| File.join(root, x) }
     end
     ary
   end

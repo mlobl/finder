@@ -82,4 +82,11 @@ describe "Finder" do
     expected = ["spec/test_directory/a.txt"].map { |p| File.expand_path(p) }
     actual.should eq(expected)
   end
+
+  it "test with just rules" do
+    r = FinderRule.new(path: "**test_directory/a*")
+    actual = Finder.new([r]).files
+    expected = ["spec/test_directory/a.txt"].map { |p| File.expand_path(p) }
+    actual.should eq(expected)
+  end
 end

@@ -1,4 +1,4 @@
-# finder (Do not use)
+# finder
 
 Helps you find files and folders recursively from a root directory
 
@@ -43,7 +43,21 @@ end
 Finder.new.walk do |current_dir, folder, files|
     ....
 end
+
+# ---------------------
+# You can also create composable rules for which files to match on
+FinderRule.new(path: "**ah/hello**").match?("blah/hello.cr").should be_true
+# name, path, max_depth, min_depth, and root are supported kwargs
+#(see docs/spec for more details) 
+a = FinderRule.new(min_depth: 0)
+b = FinderRule.new(min_depth: 1)
+c = FinderRule.new(min_depth: 2)
+(b & (a | c)).match?("a/hello.cr").should be_true
+(c & (a | b)).match?("a/hello.cr").should be_false
+# and an illustration with the Finder class
+Finder.new(b & (a | c))
 ```
+
 
 ## Contributing
 
