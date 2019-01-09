@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="generator" content="Crystal Docs 0.27.0">
+
+
+<link href="css/style.css" rel="stylesheet" type="text/css">
+
+<script type="text/javascript" src="js/doc.js"></script>
+<script type="text/javascript">
+  CrystalDoc.base_path = "";
+</script>
+
+  <meta id="repository-name" content="github.com/mlobl/finder">
+  <title>README - github.com/mlobl/finder</title>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="sidebar-header">
+    <div class="search-box">
+      <input type="search" class="search-input" placeholder="Search..." spellcheck="false" aria-label="Search">
+    </div>
+
+    <div class="repository-links">
+      <a href="index.html">README</a>
+    </div>
+  </div>
+
+  <div class="search-results" class="hidden">
+    <ul class="search-list"></ul>
+  </div>
+
+  <div class="types-list">
+    <ul>
+  
+  <li class=" " data-id="github.com/mlobl/finder/Finder" data-name="finder">
+      <a href="Finder.html">Finder</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/mlobl/finder/FinderRule" data-name="finderrule">
+      <a href="FinderRule.html">FinderRule</a>
+      
+    </li>
+  
+</ul>
+
+  </div>
+</div>
+
+
+<div class="main-content">
+<h1>finder</h1>
+
+<p>Helps you find files and folders recursively from a root directory</p>
+
+<p><a href="https://travis-ci.org/mlobl/finder" target="_blank"><img src="https://travis-ci.org/mlobl/finder.svg?branch=master" alt="Build Status"/></a>
+<a href="https://github.com/mlobl/finder/releases" target="_blank"><img src="https://img.shields.io/github/release/mlobl/finder.svg" alt="GitHub release"/></a></p>
+
+<h2>Installation</h2>
+
+<p>Add this to your application's <code>shard.yml</code>:</p>
+
+<pre><code class="language-yaml">dependencies:
+  finder:
+    github: mlobl/finder</code></pre>
+
+<h2>Usage</h2>
+
+<p>You can look at spec and <a href="https://mlobl.github.io/finder/Finder.html" target="_blank">docs</a> for a few examples, but here are some quickies</p>
+
+<pre><code class="language-crystal"><span class="k">require</span> <span class="s">&quot;finder&quot;</span>
+
+<span class="c"># Uses CWD as the root dir by default</span>
+finder <span class="o">=</span> <span class="t">Finder</span>.<span class="k">new</span>
+<span class="c"># or set it like this</span>
+<span class="t">Finder</span>.<span class="k">new</span> <span class="s">&quot;/tmp&quot;</span>
+
+<span class="c"># substring match</span>
+finder.find(<span class="s">&quot;.txt&quot;</span>)  <span class="c"># ==&gt; [&quot;a.txt&quot;, &quot;dir/path/b.txt&quot;, ..]</span>
+<span class="c"># or regex</span>
+<span class="t">Finder</span>.<span class="k">new</span>.find(<span class="s">/\.txt/</span>)  <span class="c"># ==&gt; [&quot;a.txt&quot;, &quot;dir/path/b.txt&quot;, ..]</span>
+<span class="c"># filter with a select method</span>
+finder.<span class="k">select</span> <span class="o">&amp;</span>.includes? <span class="s">&quot;substring&quot;</span>
+<span class="c"># array of all files (can pass in block as well)</span>
+<span class="t">Finder</span>.<span class="k">new</span>.files <span class="c"># ==&gt; [&quot;dir_a/x.txt&quot;, &quot;dir_b/y.txt&quot;, ..]</span>
+<span class="c"># same for dirs</span>
+<span class="t">Finder</span>.<span class="k">new</span>.dirs <span class="c"># ==&gt; [&quot;dir_a&quot;, &quot;dir_b&quot;, ..]</span>
+<span class="c"># iterate across both dirs and files with each</span>
+<span class="t">Finder</span>.<span class="k">new</span>.each <span class="k">do</span> <span class="o">|</span>path<span class="o">|</span>
+    puts path
+<span class="k">end</span>
+<span class="c"># walk the directory (port of Python&#39;s os.walk)</span>
+<span class="t">Finder</span>.<span class="k">new</span>.walk <span class="k">do</span> <span class="o">|</span>current_dir, folder, files<span class="o">|</span>
+    ....
+<span class="k">end</span>
+
+<span class="c"># ---------------------</span>
+<span class="c"># You can also create composable rules for which files to match on</span>
+<span class="t">FinderRule</span>.<span class="k">new</span>(path: <span class="s">&quot;**ah/hello**&quot;</span>).match?(<span class="s">&quot;blah/hello.cr&quot;</span>).should be_true
+<span class="c"># name, path, max_depth, min_depth, and root are supported kwargs</span>
+<span class="c">#(see docs/spec for more details) </span>
+a <span class="o">=</span> <span class="t">FinderRule</span>.<span class="k">new</span>(min_depth: <span class="n">0</span>)
+b <span class="o">=</span> <span class="t">FinderRule</span>.<span class="k">new</span>(min_depth: <span class="n">1</span>)
+c <span class="o">=</span> <span class="t">FinderRule</span>.<span class="k">new</span>(min_depth: <span class="n">2</span>)
+(b <span class="o">&amp;</span> (a <span class="o">|</span> c)).match?(<span class="s">&quot;a/hello.cr&quot;</span>).should be_true
+(c <span class="o">&amp;</span> (a <span class="o">|</span> b)).match?(<span class="s">&quot;a/hello.cr&quot;</span>).should be_false
+<span class="c"># and an illustration with the Finder class</span>
+<span class="t">Finder</span>.<span class="k">new</span>(b <span class="o">&amp;</span> (a <span class="o">|</span> c))</code></pre>
+
+<h2>Contributing</h2>
+
+<ol><li>Fork it ( https://github.com/mlobl/finder/fork )</li><li>Create your feature branch (git checkout -b my-new-feature)</li><li>Commit your changes (git commit -am 'Add some feature')</li><li>Push to the branch (git push origin my-new-feature)</li><li>Create a new Pull Request</li></ol>
+
+<h2>Contributors</h2>
+
+<ul><li><a href="https://github.com/mlobl" target="_blank">mlobl</a> Meyer Lobl - creator, maintainer</li></ul>
+</div>
+</body>
+</html>
